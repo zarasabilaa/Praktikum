@@ -64,4 +64,5 @@ class BerandaPage extends StatelessWidget {
       ),
     );
   }
+  
 }
