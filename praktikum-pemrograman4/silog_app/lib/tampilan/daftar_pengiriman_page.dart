@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 
 import '../data/data_contoh.dart';
@@ -5,16 +6,27 @@ import '../model/pengiriman.dart';
 import '../widget/kartu_pengiriman.dart';
 import 'detail_pengiriman_page.dart';
 import 'form_pengiriman_page.dart';
+import 'stok_page.dart';
 
 class DaftarPengirimanPage extends StatefulWidget {
-  const DaftarPengirimanPage({super.key});
+  final bool modeGelap;
+  final Future<void> Function(bool aktif) onModeGelapChanged;
+
+  const DaftarPengirimanPage({
+    super.key,
+    required this.modeGelap,
+    required this.onModeGelapChanged,
+  });
 
   @override
-  State<DaftarPengirimanPage> createState() => _DaftarPengirimanPageState();
+  State<DaftarPengirimanPage> createState() =>
+      _DaftarPengirimanPageState();
 }
 
-class _DaftarPengirimanPageState extends State<DaftarPengirimanPage> {
+class _DaftarPengirimanPageState
+    extends State<DaftarPengirimanPage> {
   late List<Pengiriman> _daftar;
+
   String _filterStatus = 'Semua';
 
   @override
@@ -29,23 +41,50 @@ class _DaftarPengirimanPageState extends State<DaftarPengirimanPage> {
   List<Pengiriman> get _hasilSaring {
     return _filterStatus == 'Semua'
         ? _daftar
-        : _daftar.where((p) => p.status == _filterStatus).toList();
+        : _daftar
+            .where((p) => p.status == _filterStatus)
+            .toList();
   }
 
-  // Membuka formulir dan mengirim daftar nomor resi
+  // Membuka halaman stok gudang
+  void _bukaStok() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const StokPage(),
+      ),
+    );
+  }
+
+  // Mengubah mode gelap
+  Future<void> _ubahTema(bool aktif) async {
+    try {
+      await widget.onModeGelapChanged(aktif);
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal menyimpan preferensi tema: $e'),
+        ),
+      );
+    }
+  }
+
+  // Membuka formulir pengiriman
   Future<void> _bukaFormulir() async {
     final hasil = await Navigator.push<Pengiriman>(
       context,
       MaterialPageRoute(
         builder: (_) => FormPengirimanPage(
-          resiTerdaftar: _daftar.map((pengiriman) => pengiriman.resi).toList(),
+          resiTerdaftar:
+              _daftar.map((pengiriman) => pengiriman.resi).toList(),
         ),
       ),
     );
 
     if (!mounted) return;
 
-    // Menambahkan data pengiriman baru
     if (hasil != null) {
       setState(() {
         _daftar.insert(0, hasil);
@@ -53,7 +92,9 @@ class _DaftarPengirimanPageState extends State<DaftarPengirimanPage> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Pengiriman ${hasil.resi} berhasil ditambahkan'),
+          content: Text(
+            'Pengiriman ${hasil.resi} berhasil ditambahkan',
+          ),
         ),
       );
     }
@@ -63,36 +104,78 @@ class _DaftarPengirimanPageState extends State<DaftarPengirimanPage> {
   Future<void> _bukaDetail(Pengiriman item) async {
     final hasil = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(builder: (_) => DetailPengirimanPage(pengiriman: item)),
+      MaterialPageRoute(
+        builder: (_) => DetailPengirimanPage(
+          pengiriman: item,
+        ),
+      ),
     );
 
     if (!mounted) return;
 
-    // Menghapus data jika pengguna mengonfirmasi
     if (hasil == true) {
       setState(() {
         _daftar.remove(item);
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Pengiriman ${item.resi} berhasil dihapus')),
+        SnackBar(
+          content: Text(
+            'Pengiriman ${item.resi} berhasil dihapus',
+          ),
+        ),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    const opsi = ['Semua', 'Menunggu Pickup', 'Dalam Perjalanan', 'Diterima'];
+    const opsi = [
+      'Semua',
+      'Menunggu Pickup',
+      'Dalam Perjalanan',
+      'Diterima',
+    ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Daftar Pengiriman')),
+      appBar: AppBar(
+        title: const Text('Daftar Pengiriman'),
+
+        actions: [
+          // Tombol menuju halaman stok
+          IconButton(
+            onPressed: _bukaStok,
+            icon: const Icon(Icons.inventory_2_outlined),
+            tooltip: 'Stok Gudang',
+          ),
+
+          // Pengaturan mode gelap
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                widget.modeGelap
+                    ? Icons.dark_mode
+                    : Icons.light_mode,
+              ),
+              Switch(
+                value: widget.modeGelap,
+                onChanged: _ubahTema,
+              ),
+            ],
+          ),
+        ],
+      ),
 
       body: Column(
         children: [
           // Pilihan filter status
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 8,
+            ),
             child: Row(
               children: opsi.map((o) {
                 return Padding(
@@ -120,7 +203,9 @@ class _DaftarPengirimanPageState extends State<DaftarPengirimanPage> {
           // Daftar pengiriman
           Expanded(
             child: _hasilSaring.isEmpty
-                ? const Center(child: Text('Tidak ada data pengiriman'))
+                ? const Center(
+                    child: Text('Tidak ada data pengiriman'),
+                  )
                 : ListView.builder(
                     itemCount: _hasilSaring.length,
                     itemBuilder: (context, i) {
