@@ -1,0 +1,19 @@
+$kind: http-request
+name: https://jsonplaceholder.typicode.com/posts
+description: ""
+url: https://jsonplaceholder.typicode.com/posts
+method: GET
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: "{\r
+
+    \  \"title\": \"Belajar Flutter HTTP\",\r
+
+    \  \"body\": \"Pengujian request POST menggunakan Postman\",\r
+
+    \  \"userId\": 1\r
+
+    }"
+order: 1000
