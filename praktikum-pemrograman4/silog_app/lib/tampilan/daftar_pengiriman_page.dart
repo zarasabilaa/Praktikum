@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 import '../data/data_contoh.dart';
@@ -6,6 +5,7 @@ import '../model/pengiriman.dart';
 import '../widget/kartu_pengiriman.dart';
 import 'detail_pengiriman_page.dart';
 import 'form_pengiriman_page.dart';
+import 'order_page.dart';
 import 'stok_page.dart';
 
 class DaftarPengirimanPage extends StatefulWidget {
@@ -23,8 +23,7 @@ class DaftarPengirimanPage extends StatefulWidget {
       _DaftarPengirimanPageState();
 }
 
-class _DaftarPengirimanPageState
-    extends State<DaftarPengirimanPage> {
+class _DaftarPengirimanPageState extends State<DaftarPengirimanPage> {
   late List<Pengiriman> _daftar;
 
   String _filterStatus = 'Semua';
@@ -44,6 +43,16 @@ class _DaftarPengirimanPageState
         : _daftar
             .where((p) => p.status == _filterStatus)
             .toList();
+  }
+
+  // Membuka halaman order layanan web
+  void _bukaOrder() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const OrderPage(),
+      ),
+    );
   }
 
   // Membuka halaman stok gudang
@@ -92,9 +101,7 @@ class _DaftarPengirimanPageState
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Pengiriman ${hasil.resi} berhasil ditambahkan',
-          ),
+          content: Text('Pengiriman ${hasil.resi} berhasil ditambahkan'),
         ),
       );
     }
@@ -119,11 +126,7 @@ class _DaftarPengirimanPageState
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Pengiriman ${item.resi} berhasil dihapus',
-          ),
-        ),
+        SnackBar(content: Text('Pengiriman ${item.resi} berhasil dihapus')),
       );
     }
   }
@@ -142,6 +145,13 @@ class _DaftarPengirimanPageState
         title: const Text('Daftar Pengiriman'),
 
         actions: [
+          // Tombol menuju halaman OrderPage
+          IconButton(
+            onPressed: _bukaOrder,
+            icon: const Icon(Icons.local_shipping_outlined),
+            tooltip: 'Order Layanan Web',
+          ),
+
           // Tombol menuju halaman stok
           IconButton(
             onPressed: _bukaStok,
@@ -172,10 +182,7 @@ class _DaftarPengirimanPageState
           // Pilihan filter status
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 8,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Row(
               children: opsi.map((o) {
                 return Padding(
